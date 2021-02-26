@@ -12,6 +12,11 @@
             return new Point2D(from.X + value.X, from.Y + value.Y);
         }
 
+        public static Point2D DivCopy(this Point2D from, Point2D divider)
+        {
+            return new Point2D(from.X / divider.X, from.Y / divider.Y);
+        }
+
         public static Point2D MultiplyCopy(this IPoint2D what, double multipier)
         {
             return new Point2D(what.X * multipier, what.Y * multipier);
