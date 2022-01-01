@@ -7,6 +7,5 @@ namespace SGraph.Core.Graph
     public class Node
     {
         public readonly int Id;
-
     }
 }

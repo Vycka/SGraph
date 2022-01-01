@@ -6,12 +6,10 @@ namespace SGraph.Core.Rendering
 {
     public interface IRenderer<TNode, TEdge>
     {
-        void BeginFrame();
+        void Render();
 
-        void EndFrame();
+        void SetNodes(IReadOnlyList<PointEntity<TNode>> nodes);
 
-        void DrawNodes(IReadOnlyList<PointEntity<TNode>> nodes);
-
-        void DrawEdges(IReadOnlyList<EntityLink<TNode, TEdge>> edges);
+        void SetEdges(IReadOnlyList<EntityLink<TNode, TEdge>> edges);
     }
 }

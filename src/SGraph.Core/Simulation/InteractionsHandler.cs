@@ -2,21 +2,21 @@
 
 namespace SGraph.Core.Simulation
 {
-    public class PhysicsEngine
+    public class InteractionsHandler
     {
         private readonly List<IInteraction> _interactions;
 
-        public PhysicsEngine()
+        public InteractionsHandler()
         {
             _interactions = new List<IInteraction>();
         }
 
-        public PhysicsEngine Add<T>(IForce<T> force, List<T> entities)
+        public InteractionsHandler Add<T>(IForce<T> force, List<T> entities)
         {
             return Add(new Interaction<T>(force, entities));
         }
 
-        public PhysicsEngine Add(IInteraction interaction)
+        public InteractionsHandler Add(IInteraction interaction)
         {
             _interactions.Add(interaction);
 

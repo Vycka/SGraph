@@ -1,6 +1,6 @@
 ﻿namespace SGraph.Core.Simulation
 {
-    public class PointEntity<T>
+    public class PointEntity<T> 
     {
         public PointEntity(T entity)
         {
@@ -9,7 +9,7 @@
 
         public T Entity { get; }
 
-        public Point2D Position { get; } = default;
-        public Vector2D Force { get; } = default;
+        public Point2D Position = new Point2D(0, 0);
+        public Vector2D Force = new Vector2D();
     }
 }

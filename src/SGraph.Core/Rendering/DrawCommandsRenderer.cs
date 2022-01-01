@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using SGraph.Core.Simulation;
+﻿using SGraph.Core.Simulation;
 using SGraph.Core.Simulation.Extensions;
+using System.Collections.Generic;
 
 namespace SGraph.Core.Rendering
 {
@@ -9,38 +9,55 @@ namespace SGraph.Core.Rendering
         private IReadOnlyList<PointEntity<TNode>> _nodes;
         private IReadOnlyList<EntityLink<TNode, TEdge>> _edges;
 
-        private Point2D _min, _max, _offset, _size, _ratio;
+        private readonly Point2D _min;
+        private readonly Point2D _max;
 
-        private readonly Point2D _display;
-        private readonly IDrawing<TNode, TEdge> _drawing;
+        private Point2D _localSize, _displayAdjustedRatio;
 
-        public DrawCommandsRenderer(Point2D display, IDrawing<TNode, TEdge> drawing)
+        private readonly IDisplay<TNode, TEdge> _display;
+        private readonly int _borderSize;
+
+        public DrawCommandsRenderer(IDisplay<TNode, TEdge> display, int borderSize = 100)
         {
             _display = display;
-            _drawing = drawing;
+            _borderSize = borderSize;
+
+            _min = new Point2D(double.MaxValue, double.MaxValue);
+            _max = new Point2D(double.MinValue, double.MinValue);
         }
 
-        public void BeginFrame()
+        public void Render()
         {
-        }
+			CalculateBounds();
 
-        public void EndFrame()
-        {
-            CalculateBounds();
+            foreach (EntityLink<TNode, TEdge> edge in _edges)
+            {
+                int x1 = (int)((edge.From.Position.X - _min.X) * _displayAdjustedRatio.X) + _borderSize;
+				int y1 = (int)((edge.From.Position.Y - _min.Y) * _displayAdjustedRatio.Y) + _borderSize;
+                int x2 = (int)((edge.To.Position.X - _min.X) * _displayAdjustedRatio.X) + _borderSize;
+                int y2 = (int)((edge.To.Position.Y - _min.Y) * _displayAdjustedRatio.Y) + _borderSize;
+
+                _display.Draw(edge.Entity, x1, y1, x2, y2);
+            }
 
             foreach (PointEntity<TNode> node in _nodes)
             {
-                
+                int x = (int)((node.Position.X - _min.X) * _displayAdjustedRatio.X) + _borderSize;
+                int y = (int)((node.Position.Y - _min.Y) * _displayAdjustedRatio.Y) + _borderSize;
+                 
+                _display.Draw(node.Entity, x, y);
             }
+
+            _display.EndDraw();
         }
 
         private void CalculateBounds()
         {
 
-            _min.X = -1;
-            _min.Y = -1;
-            _max.X = 1;
-            _max.Y = 1;
+            _min.X = double.MaxValue;
+            _min.Y = double.MaxValue;
+            _max.X = double.MinValue;
+            _max.Y = double.MinValue;
 
             for (int i = 0; i < _nodes.Count; i++)
             {
@@ -59,99 +76,20 @@ namespace SGraph.Core.Rendering
                     _min.Y = position.Y;
             }
 
-            _offset.X = -_min.X;
-            _offset.Y = -_min.Y;
-
-            _size = _max.SubCopy(_min);
-            _ratio = _display.DivCopy(_size);
+            _localSize = _max.SubCopy(_min);
+            _displayAdjustedRatio = _display.Size
+                .SubCopy(_borderSize * 2)
+                .DivCopy(_localSize);
         }
 
-        public void DrawNodes(IReadOnlyList<PointEntity<TNode>> nodes)
+        public void SetNodes(IReadOnlyList<PointEntity<TNode>> nodes)
         {
             _nodes = nodes;
         }
 
-        public void DrawEdges(IReadOnlyList<EntityLink<TNode, TEdge>> edges)
+        public void SetEdges(IReadOnlyList<EntityLink<TNode, TEdge>> edges)
         {
             _edges = edges;
         }
-
-        /*
-         if (visibleNodes.size() > 0)
-	{
-		minX = visibleNodes[0]->getX();
-		maxX = visibleNodes[0]->getX();
-		minY = visibleNodes[0]->getY();
-		maxY = visibleNodes[0]->getY();
-	}
-	else
-	{
-		minX = 0;
-		maxX = 0;
-		minY = 1;
-		maxY = 1;
-	}
-	maxWeight = 0;
-
-	for (unsigned int x = 0; x < visibleNodes.size();x++)	
-	{
-		if (visibleNodes[x]->getX() > maxX)
-			maxX = visibleNodes[x]->getX();
-
-		if (visibleNodes[x]->getX() < minX)
-			minX = visibleNodes[x]->getX();
-
-		if (visibleNodes[x]->getY() > maxY)
-			maxY = visibleNodes[x]->getY();
-
-		if (visibleNodes[x]->getY() < minY)
-			minY = visibleNodes[x]->getY();
-	}
-
-	// Increase size if too small.
-	double minSize = cfg->gMinDiagramSize;
-	if (maxX - minX < minSize)
-	{
-		double midX = (maxX + minX) / 2;
-		minX = midX - (minSize / 2);
-		maxX = midX + (minSize / 2);
-	}
-	if (maxY - minY < minSize)
-	{
-		double midY = (maxY + minY) / 2;
-		minY = midY - (minSize / 2);
-		maxY = midY + (minSize / 2);
-	}
-
-	for (unsigned int x = 0;x < edges.size();x++)
-		if (edges[x]->getWeight() > maxWeight)
-			maxWeight = edges[x]->getWeight();
-
-	if (maxWeight < cfg->gMinMaxWeight)
-		maxWeight = cfg->gMinMaxWeight;
-
-		
-	// Jibble the boundaries to maintain the aspect ratio.
-	if (!cfg->gStrechToImageSize)
-	{
-		double xyRatio = ((maxX - minX) / (maxY - minY)) / (cfg->iOutputWidth / cfg->iOutputHeight);
-		if (xyRatio > 1)
-		{
-			// diagram is wider than it is high.
-			double dy = maxY - minY;
-			dy = dy * xyRatio - dy;
-			minY = minY - dy / 2;
-			maxY = maxY + dy / 2;
-		}
-		else if (xyRatio < 1)
-		{
-			// Diagram is higher than it is wide.
-			double dx = maxX - minX;
-			dx = dx / xyRatio - dx;
-			minX = minX - dx / 2;
-			maxX = maxX + dx / 2;
-		}
-	}
-         */
     }
 }

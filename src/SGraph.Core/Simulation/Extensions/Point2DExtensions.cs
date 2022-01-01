@@ -7,6 +7,11 @@
             return new Point2D(from.X - value.X, from.Y - value.Y);
         }
 
+        public static Point2D SubCopy(this IPoint2D from, double value)
+        {
+            return new Point2D(from.X - value, from.Y - value);
+        }
+
         public static Point2D AddCopy(this IPoint2D from, IPoint2D value)
         {
             return new Point2D(from.X + value.X, from.Y + value.Y);

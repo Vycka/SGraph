@@ -1,6 +1,8 @@
-﻿namespace SGraph.Core.Simulation
+﻿using System.Reflection.Metadata.Ecma335;
+
+namespace SGraph.Core.Simulation
 {
-    public struct Point2D : IPoint2D
+    public class Point2D : IPoint2D
     {
         public Point2D(double x, double y)
         {
@@ -10,5 +12,10 @@
 
         public double X { get; set; }
         public double Y { get; set; }
+
+        public override string ToString()
+        {
+            return $"x:{X} y:{Y}";
+        }
     }
 }
